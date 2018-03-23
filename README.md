@@ -8,3 +8,13 @@ A Classic Asteroids game, written in haskell with openGL libraries.
   - `$ ghc --make main.hs`
 
   - `$ ./main`
+
+### Contributing
+
+ - Grab an issue: Assign Yourself, and move the issue in the project's Kanban
+ 
+ - Create a branch: Do all your work on a separate branch, named accordingly.
+ 
+ - The last commit: Should start with "Closes #XYZ", where XYZ = Issue Number.
+ 
+ - Open a pull-request and wait for review.
