@@ -3,11 +3,16 @@ module Hasteroids.Player (Player(..)) where
 import Hasteroids.Geometry
 import Hasteroids.Geometry.Transform
 import Hasteroids.Render (LineRenderable(..))
+import Hasteroids.Tick
 
-data Player = Player {playerPos :: Body}
+data Player = Player {playerBody :: Body}
 
 instance LineRenderable Player where
     lineSegments (Player p) = map (transform p) $ shipLines
+
+-- player needs to be tickable --
+instance Tickable Player where
+    tick (Player b) = Player $ rotate 0.1 b
 
 --Constante : Tamanho da nave
 shipSize = 12.0 :: Float

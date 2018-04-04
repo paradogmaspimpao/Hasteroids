@@ -4,6 +4,7 @@ import Hasteroids.Player
 import Hasteroids.Geometry
 import Hasteroids.Geometry.Transform
 import Hasteroids.Render (LineRenderable(..))
+import Hasteroids.Tick
 
 data GameState = GameState { statePlayer :: Player }
 
@@ -20,3 +21,10 @@ initialPlayerState = Player $ Body {bodyPos=(400, 300), bodyAngle=pi/4.0}
 
 stateLines :: GameState -> [LineSegment]
 stateLines = lineSegments . statePlayer
+
+instance Tickable GameState where
+    tick = tickState
+
+-- update game state
+tickState :: GameState -> GameState
+tickState (GameState pl) = GameState $ tick pl

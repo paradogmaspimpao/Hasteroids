@@ -40,3 +40,4 @@ initializeOpenGL = do
 initializeCallbacks :: IO ()
 initializeCallbacks = do
     displayCallback $= renderViewport initialGameState
+    addTimerCallback 0 $ logicTick initialGameState

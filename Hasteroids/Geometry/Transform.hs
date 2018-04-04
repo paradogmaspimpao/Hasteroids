@@ -1,6 +1,7 @@
 module Hasteroids.Geometry.Transform (
     Body (..),
-    transform
+    transform,
+    rotate
 ) where
 
 import Hasteroids.Geometry
@@ -9,6 +10,9 @@ data Body = Body {
     bodyPos :: Vec2,
     bodyAngle :: Float
     }
+
+rotate :: Float -> Body -> Body
+rotate d b@(Body {bodyAngle=a}) = b {bodyAngle = a+d}
  
 -- transforms a line segment based on the body position and orientation
 transform :: Body -> LineSegment -> LineSegment
@@ -25,4 +29,3 @@ rotatePt a (x,y) = (x', y')
 
 applyXform :: (Vec2 -> Vec2) -> LineSegment -> LineSegment
 applyXform f (LineSegment (p,p')) = (LineSegment (f p, f p'))
-
