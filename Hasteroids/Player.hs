@@ -1,9 +1,12 @@
 module Hasteroids.Player (Player(..)) where
 
+import Hasteroids.Controls
 import Hasteroids.Geometry
 import Hasteroids.Geometry.Transform
+import Hasteroids.Geometry.Body
 import Hasteroids.Render (LineRenderable(..))
 import Hasteroids.Tick
+import Hasteroids.Keyboard
 
 data Player = Player {playerBody :: Body}
 
@@ -12,7 +15,17 @@ instance LineRenderable Player where
 
 -- player needs to be tickable --
 instance Tickable Player where
-    tick (Player b) = Player $ rotate 0.1 b
+    tick keyboard (Player body) = Player $ updatePlayerBody turn acc body
+        where turn | key turnLeft  = -0.2
+                   | key turnRight = 0.2
+                   | otherwise     = 0
+              acc | key thrust = 1.5
+                   | otherwise  = 0
+                  
+              key = isKeyDown keyboard
+
+updatePlayerBody :: Float -> Float -> Body -> Body
+updatePlayerBody turn acceleration = updateBody . damping 0.96 . accelerateForward acceleration . rotate turn
 
 --Constante : Tamanho da nave
 shipSize = 12.0 :: Float

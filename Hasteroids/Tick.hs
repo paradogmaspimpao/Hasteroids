@@ -1,5 +1,7 @@
 module Hasteroids.Tick where
 
+import Hasteroids.Keyboard (Keyboard)
+
 class Tickable t where
-    tick :: t -> t
+    tick :: Keyboard -> t -> t
 
