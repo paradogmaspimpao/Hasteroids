@@ -16,3 +16,10 @@ pointsToSegments :: [Vec2] -> [LineSegment]
 pointsToSegments (p:p':[]) = [LineSegment (p, p')]
 pointsToSegments (p:t@(p':ps)) = (LineSegment (p, p')) : pointsToSegments t
 
+-- Adição entre dois vetores
+(x, y) /+/ (x1, y1) = (x+x1, y+y1)
+
+-- multiplicação de um vetor por um escalar
+-- / Indica o lado do vetor
+n */ (x, y) = (n*x, n*y)
+(x, y) /* n = (n*x, n*y)

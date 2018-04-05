@@ -1,10 +1,13 @@
 module Hasteroids.Initialize where
 
+import Data.IORef
+
 import Graphics.Rendering.OpenGL
 import Graphics.UI.GLUT
 
 import Hasteroids.State (initialGameState)
 import Hasteroids.Callbacks
+import Hasteroids.Keyboard
 
 initializeWindow :: IO Window
 initializeWindow = do
@@ -39,4 +42,7 @@ initializeOpenGL = do
 
 initializeCallbacks :: IO ()
 initializeCallbacks = do
+    keyboard <- newIORef initKeyboard
+    keyboardMouseCallback $= Just (handleKeyboard keyboard)
     displayCallback $= renderViewport initialGameState
+    addTimerCallback 0 $ logicTick keyboard initialGameState
