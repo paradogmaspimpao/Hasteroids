@@ -1,12 +1,13 @@
 module Hasteroids.Player (Player(..)) where
 
 import Hasteroids.Geometry
+import Hasteroids.Geometry.Transform
 import Hasteroids.Render (LineRenderable(..))
 
-data Player = Player {playerPos :: Vec2}
+data Player = Player {playerBody :: Body}
 
 instance LineRenderable Player where
-    lineSegments (Player p) = map (translateLine p) $ shipLines
+    lineSegments (Player p) = map (transform p) $ shipLines
 
 --Constante : Tamanho da nave
 shipSize = 12.0 :: Float

@@ -16,11 +16,3 @@ pointsToSegments :: [Vec2] -> [LineSegment]
 pointsToSegments (p:p':[]) = [LineSegment (p, p')]
 pointsToSegments (p:t@(p':ps)) = (LineSegment (p, p')) : pointsToSegments t
 
--- Calcula o translado de um ponto
-translate ::  Vec2 -> Vec2 -> Vec2 -- delta -> ponto original -> ponto transladado
-translate (x, y) (x', y') = (x+x', y+y')
-
---Calcula o translado de uma linha
-translateLine :: Vec2 -> LineSegment -> LineSegment
-translateLine p (LineSegment (l, l')) = (LineSegment (t l, t l'))
-    where t = translate p
