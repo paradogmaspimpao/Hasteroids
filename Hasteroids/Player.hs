@@ -13,7 +13,7 @@ data Player = Player {playerBody :: Body}
 instance LineRenderable Player where
     lineSegments (Player p) = map (transform p) $ shipLines
 
--- player needs to be tickable --
+-- Player precisa ser conforme ao "protocolo Tickable" --
 instance Tickable Player where
     tick keyboard (Player body) = Player $ updatePlayerBody turn acc body
         where turn | key turnLeft  = -0.2
@@ -21,7 +21,7 @@ instance Tickable Player where
                    | otherwise     = 0
               acc | key thrust = 1.5
                    | otherwise  = 0
-                  
+
               key = isKeyDown keyboard
 
 updatePlayerBody :: Float -> Float -> Body -> Body

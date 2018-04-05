@@ -27,6 +27,6 @@ stateLines = lineSegments . statePlayer
 instance Tickable GameState where
     tick = tickState
 
--- update game state
+-- Atualiza o game-state.
 tickState :: Keyboard -> GameState -> GameState
 tickState keyboard (GameState pl) = GameState $ tick keyboard pl

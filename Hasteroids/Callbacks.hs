@@ -11,7 +11,7 @@ import Hasteroids.Keyboard
 
 type KeyboardRef = IORef Keyboard
 
--- | Render the viewport using the given renderable and swap buffers
+-- | Renderiza a viewport e troca os buffers
 renderViewport :: LineRenderable r => r -> IO ()
 renderViewport r = do
     clear [ColorBuffer]
@@ -27,9 +27,8 @@ logicTick keyboard t = do
     postRedisplay Nothing
 
 
--- update keyboard state according to a event
--- KeyboardMouseCallback is an alias for: 
+-- Atualiza o estado do teclado de acordo com um evento
+-- KeyboardMouseCallback é um alias para:
 -- Key -> KeyState -> Modifiers -> Position -> IO())
 handleKeyboard :: KeyboardRef -> KeyboardMouseCallback
 handleKeyboard keyboard key key' _ _ = modifyIORef keyboard (handleKeyEvent key key')
-

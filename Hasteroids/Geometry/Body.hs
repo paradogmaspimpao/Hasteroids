@@ -1,10 +1,10 @@
 module Hasteroids.Geometry.Body (
-    Body (..), 
+    Body (..),
     transform,
     rotate,
     damping,
     accelerateForward,
-    updateBody, 
+    updateBody,
     initBody
     ) where
 
@@ -19,17 +19,17 @@ data Body = Body {
     bodyRotation :: Float
     }
 
--- initialize body
+-- Inicializa o corpo
 initBody :: Vec2 -> Body
 initBody pos = Body pos 0 (0, 0) 0
 
--- update position and orientation of a body, according to its velocity and rotation
+-- Atualiza posição e orientação do corpo de acordo com sua velocidade e rotação
 updateBody :: Body -> Body
 updateBody body = body {bodyPos = pos, bodyAngle = angle}
     where pos = bodyPos body /+/ bodyVelocity body
           angle = bodyAngle body + bodyRotation body
 
--- accelerate body with a vector
+-- Acelera o corpo a partir de um vetor
 accelerate :: Vec2 -> Body -> Body
 accelerate (ax, ay) body = body { bodyVelocity = newVelocity }
     where newVelocity = (ax+vx, ay+vy)
@@ -38,7 +38,7 @@ accelerate (ax, ay) body = body { bodyVelocity = newVelocity }
 accelerateForward :: Float -> Body -> Body
 accelerateForward mag body = accelerate (polar mag $ bodyAngle body) body
 
--- damping effect
+-- Desacelera o corpo com um efeito de resistência ao movimento.
 damping :: Float -> Body -> Body
 damping coefficient body = body { bodyVelocity = coefficient */ bodyVelocity body}
 
@@ -47,4 +47,3 @@ rotate n b = b { bodyRotation = n }
 
 transform :: Body -> LineSegment -> LineSegment
 transform (Body pos a _ _) = applyXform $ (translatePt pos) . (rotatePt a)
-
