@@ -23,5 +23,3 @@ pointsToSegments (p:t@(p':ps)) = (LineSegment (p, p')) : pointsToSegments t
 -- / indicates the side of the vector
 n */ (x, y) = (n*x, n*y)
 (x, y) /* n = (n*x, n*y)
-
-

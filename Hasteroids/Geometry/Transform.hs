@@ -10,5 +10,6 @@ rotatePt a (x,y) = (x', y')
     where x' = x * (cos a) - y * (sin a)
           y' = x * (sin a) + y * (cos a)
 
+--  Aplica a funcao de transformacao a um segmento de linha
 applyXform :: (Vec2 -> Vec2) -> LineSegment -> LineSegment
 applyXform f (LineSegment (p,p')) = (LineSegment (f p, f p'))
