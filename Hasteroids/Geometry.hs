@@ -19,7 +19,12 @@ pointsToSegments (p:t@(p':ps)) = (LineSegment (p, p')) : pointsToSegments t
 -- Adição entre dois vetores
 (x, y) /+/ (x1, y1) = (x+x1, y+y1)
 
+infixl 6 /+/
+
 -- multiplicação de um vetor por um escalar
 -- / Indica o lado do vetor
 n */ (x, y) = (n*x, n*y)
 (x, y) /* n = (n*x, n*y)
+
+infixl 7 /*
+infixl 7 */
