@@ -4,10 +4,10 @@ import Graphics.Rendering.OpenGL
 import Hasteroids.Geometry
 
 class LineRenderable r where
-    lineSegments :: r -> [LineSegment]
-
-    render :: r -> IO ()
-    render = renderLines . lineSegments
+    interpolatedLines :: Float -> r -> [LineSegment]
+    
+    renderInterpolated :: Float -> r -> IO()
+    renderInterpolated f = renderLines . interpolatedLines f
 
 -- Renderiza uma lista de segmentos de linha com OpenGL
 renderLines :: [LineSegment] -> IO ()
