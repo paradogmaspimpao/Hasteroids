@@ -42,7 +42,7 @@ initializeOpenGL = do
 
 initializeCallbacks :: IO ()
 initializeCallbacks = do
-    keyboard <- newIORef initKeyboard
-    keyboardMouseCallback $= Just (handleKeyboard keyboard)
-    displayCallback $= renderViewport initialGameState
-    addTimerCallback 0 $ logicTick keyboard initialGameState
+    refs <- initCallbackRefs
+    
+    keyboardMouseCallback $= Just (handleKeyboard refs)
+    displayCallback $= renderViewport refs

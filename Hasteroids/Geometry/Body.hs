@@ -5,7 +5,8 @@ module Hasteroids.Geometry.Body (
     damping,
     accelerateForward,
     updateBody,
-    initBody
+    initBody,
+    interpolatedBody,
     ) where
 
 import Hasteroids.Geometry
@@ -16,18 +17,36 @@ data Body = Body {
     bodyAngle :: Float,
 
     bodyVelocity :: Vec2,
-    bodyRotation :: Float
+    bodyRotation :: Float,
+
+    prevPos   :: Vec2,
+    prevAngle :: Float
     }
 
 -- Inicializa o corpo
 initBody :: Vec2 -> Body
-initBody pos = Body pos 0 (0, 0) 0
+initBody pos = Body pos 0 (0, 0) 0 pos 0
 
 -- Atualiza posição e orientação do corpo de acordo com sua velocidade e rotação
 updateBody :: Body -> Body
-updateBody body = body {bodyPos = pos, bodyAngle = angle}
-    where pos = bodyPos body /+/ bodyVelocity body
-          angle = bodyAngle body + bodyRotation body
+updateBody b = b {
+     bodyPos = pos' /+/ wrap,  bodyAngle = a',
+     prevPos = pos  /+/ wrap,  prevAngle = a }
+
+     where a    = bodyAngle b
+           pos  = bodyPos b
+           pos' = pos /+/ bodyVelocity b
+           a'   = a + bodyRotation b
+           wrap = wrapper pos'
+
+--  Generate body data is is between current and previous state.
+interpolatedBody :: Float -- ^ interpolation point
+                 -> Body  -- ^ body
+                 -> Body  -- ^ interpolated body
+interpolatedBody i body = body { bodyPos = pos', bodyAngle = angle' }
+    where pos' = (bodyPos body) /* i /+/ (prevPos body) /* i'
+          angle'   = (bodyAngle body) * i + (prevAngle body) * i'
+          i'   = 1.0 - i
 
 -- Acelera o corpo a partir de um vetor
 accelerate :: Vec2 -> Body -> Body
@@ -46,4 +65,4 @@ rotate :: Float -> Body -> Body
 rotate n b = b { bodyRotation = n }
 
 transform :: Body -> LineSegment -> LineSegment
-transform (Body pos a _ _) = applyXform $ (translatePt pos) . (rotatePt a)
+transform (Body pos a _ _ _ _) = applyXform $ (translatePt pos) . (rotatePt a)

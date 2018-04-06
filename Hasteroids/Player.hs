@@ -11,7 +11,8 @@ import Hasteroids.Keyboard
 data Player = Player {playerBody :: Body}
 
 instance LineRenderable Player where
-    lineSegments (Player p) = map (transform p) $ shipLines
+    interpolatedLines f (Player b) = map (transform b') $ shipLines
+        where b' = interpolatedBody f b
 
 -- Player precisa ser conforme ao "protocolo Tickable" --
 instance Tickable Player where
