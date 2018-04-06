@@ -14,7 +14,7 @@ initializeWindow = do
     _ <- getArgsAndInitialize
     initialWindowSize  $= Size 800 600
     initialDisplayMode $= [DoubleBuffered]
-    createWindow "Hasteroids"
+    createWindow "Hasteroids - Blackholes"
 
 
 initializeOpenGL = do
@@ -43,6 +43,6 @@ initializeOpenGL = do
 initializeCallbacks :: IO ()
 initializeCallbacks = do
     refs <- initCallbackRefs
-    
+
     keyboardMouseCallback $= Just (handleKeyboard refs)
     displayCallback $= renderViewport refs

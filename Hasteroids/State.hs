@@ -9,7 +9,7 @@ import Hasteroids.Render (LineRenderable(..))
 import Hasteroids.Tick
 import Hasteroids.Keyboard
 
-data GameState = GameState { 
+data GameState = GameState {
 	statePlayer :: Player,
 	stateAsteroids :: [Asteroid] }
 
@@ -23,7 +23,10 @@ initialGameState = GameState {
     statePlayer = initPlayer,
     stateAsteroids = [
         newAsteroid (20,50) (1.5,0.7) (-0.02),
-        newAsteroid (700, 10) (-1, 0.4) (-0.015)]
+        newAsteroid (700, 10) (-1, 0.4) (-0.015),
+				newAsteroid (2,500) (1.2,0.3) (-0.04),
+				newAsteroid (78,300) (-1,0.7) (-0.05),
+				newAsteroid (200,400) (-1,-0.7) (-0.025)]
     }
 
 instance Tickable GameState where
