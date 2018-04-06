@@ -16,8 +16,7 @@ pointsToSegments :: [Vec2] -> [LineSegment]
 pointsToSegments (p:p':[]) = [LineSegment (p, p')]
 pointsToSegments (p:t@(p':ps)) = (LineSegment (p, p')) : pointsToSegments t
 
--- | Give a delta vector that needs to be added to point to wrap it around the
---   screen edge.
+--  Recebe um vetor delta que precisa ser tratado para realizar o "wrap" pelas bordas da tela.
 wrapper :: Vec2 -> Vec2
 wrapper (x,y) = (x',y')
     where x' | x < 0 = 800
@@ -26,6 +25,12 @@ wrapper (x,y) = (x',y')
           y' | y < 0 = 600
              | y >= 600 = -600
              | otherwise = 0
+
+
+ptDistanceSqr :: Vec2 -> Vec2 -> VecVal
+ptDistanceSqr (x,y) (x',y') = dx*dx + dy*dy
+    where dx = x-x'
+          dy = y-y'
 
 -- Adição entre dois vetores
 (x, y) /+/ (x1, y1) = (x+x1, y+y1)

@@ -7,6 +7,7 @@ module Hasteroids.Asteroid (
 import Hasteroids.Geometry
 import Hasteroids.Geometry.Body
 import Hasteroids.Render
+import Hasteroids.Collision
 
 data Size = Small|Medium|Large deriving (Ord, Eq)
 data Asteroid = Asteroid Size Body
@@ -14,6 +15,14 @@ data Asteroid = Asteroid Size Body
 instance LineRenderable Asteroid where
     interpolatedLines f (Asteroid sz b) = map (transform b') $ asteroidLines sz
         where b' = interpolatedBody f b
+
+-- Torna o Asteroide em uma instancia de collider
+instance Collider Asteroid where
+    collisionCenter (Asteroid _ b)  = bodyPos b
+    collisionRadius (Asteroid sz _) = radius sz
+    collisionLines = interpolatedLines 0
+
+
 -- Inicializa um novo asteroide com a posicao, velocidade e rotacao dados       
 newAsteroid :: Vec2 -> Vec2 -> Float -> Asteroid
 newAsteroid pos v r = Asteroid Large $ Body pos 0 v r pos 0

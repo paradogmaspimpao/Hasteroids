@@ -20,15 +20,11 @@ instance LineRenderable GameState where
 
 initialGameState :: GameState
 initialGameState = GameState {
-    statePlayer = initialPlayerState,
+    statePlayer = initPlayer,
     stateAsteroids = [
         newAsteroid (20,50) (1.5,0.7) (-0.02),
         newAsteroid (700, 10) (-1, 0.4) (-0.015)]
     }
-
--- Estado inicial do Jogador no centro da tela
-initialPlayerState :: Player
-initialPlayerState = Player $ initBody (400, 300)
 
 instance Tickable GameState where
     tick = tickState
@@ -36,6 +32,8 @@ instance Tickable GameState where
 -- Atualiza o game-state.
 tickState :: Keyboard -> GameState -> GameState
 tickState kb s@(GameState pl a) = s {
-    statePlayer    = tick kb pl,
-    stateAsteroids = map updateAsteroid a
+    statePlayer    = collidePlayer p' a',
+    stateAsteroids = a'
     }
+    where  p' = tick kb pl
+           a' = map updateAsteroid a
