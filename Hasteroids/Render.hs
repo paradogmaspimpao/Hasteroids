@@ -1,22 +1,51 @@
-module Hasteroids.Render (LineRenderable(..)) where
+module Hasteroids.Render (LineRenderable(..), renderLinesModern) where
 
-import Graphics.Rendering.OpenGL
+import qualified Graphics.Rendering.OpenGL as GL
+import Graphics.Rendering.OpenGL (($=))
+import Foreign.Marshal.Array (withArray)
+import Foreign.Storable (sizeOf)
+-- import Data.Foldable (concatMap) -- concatMap is in Prelude
+import Control.Monad (when)
+
 import Hasteroids.Geometry
 import Hasteroids.Geometry.Transform
+import Hasteroids.Shader (ShaderProgram)
 
 class LineRenderable r where
     interpolatedLines :: Float -> r -> [LineSegment]
 
-    renderInterpolated :: Float -> r -> IO()
-    renderInterpolated f = renderLines . interpolatedLines f
+renderLinesModern :: ShaderProgram
+                  -> GL.VertexArrayObject
+                  -> GL.BufferObject
+                  -> GL.GLmatrix GL.GLfloat
+                  -> [LineSegment]
+                  -> IO ()
+renderLinesModern program vao vbo _projectionMatrix segments = do
+    GL.currentProgram $= Just program
+    GL.bindVertexArrayObject $= Just vao
+    GL.bindBuffer GL.ArrayBuffer $= Just vbo
 
--- Renderiza uma lista de segmentos de linha com OpenGL
-renderLines :: [LineSegment] -> IO ()
-renderLines lns = do
-    currentColor $= Color4 0.9 0.9 0.9 1.0
-    renderPrimitive Lines $ mapM_ lineVertices $ wrapLines lns
+    let wrappedSegments = wrapLines segments
+        vertexData = concatMap segmentToFloats wrappedSegments -- concatMap is Prelude
+        numVertices = fromIntegral (length vertexData `div` 2)
 
--- | Generate extra lines for segments that go out of the screen
+    if null vertexData
+    then return ()
+    else withArray vertexData $ \ptr ->
+        GL.bufferData GL.ArrayBuffer $= (fromIntegral (length vertexData * sizeOf (0::GL.GLfloat)), ptr, GL.StreamDraw)
+
+    lineColorLocation <- GL.get (GL.uniformLocation program "lineColor")
+    GL.uniform lineColorLocation $= GL.Color4 0.9 0.9 0.9 (1.0 :: GL.GLfloat)
+
+    when (numVertices > 0) $ GL.drawArrays GL.Lines 0 numVertices
+
+    GL.bindBuffer GL.ArrayBuffer $= Nothing
+    GL.bindVertexArrayObject $= Nothing
+    GL.currentProgram $= Nothing
+
+segmentToFloats :: LineSegment -> [GL.GLfloat]
+segmentToFloats (LineSegment ((x1,y1),(x2,y2))) = [realToFrac x1, realToFrac y1, realToFrac x2, realToFrac y2]
+
 wrapLines :: [LineSegment] -> [LineSegment]
 wrapLines = foldr go []
     where go l@(LineSegment (p,p')) acc
@@ -29,17 +58,7 @@ wrapLines = foldr go []
               first  = (w /= (0,0))
               second = (w' /= (0,0))
 
-              w   = wrapper p
-              w'  = wrapper p'
-              l'  = applyXform (translatePt w) l
-              l'' = applyXform (translatePt w') l
-
---Gera os vértices de um segmento no OpenGL
-lineVertices :: LineSegment -> IO ()
-lineVertices (LineSegment (p,p')) = do
-    ptVertex p
-    ptVertex p'
-
---Gera um OpenGL-Vertex a partir de um ponto.
-ptVertex :: Vec2 -> IO ()
-ptVertex = vertex . uncurry Vertex2
+              w   = Hasteroids.Geometry.wrapper p
+              w'  = Hasteroids.Geometry.wrapper p'
+              l'  = Hasteroids.Geometry.Transform.applyXform (Hasteroids.Geometry.Transform.translatePt w) l
+              l'' = Hasteroids.Geometry.Transform.applyXform (Hasteroids.Geometry.Transform.translatePt w') l

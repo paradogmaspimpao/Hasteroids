@@ -1,32 +1,56 @@
-module Hasteroids.Keyboard (
+module Hasteroids.Keyboard ( -- Reverted
     Keyboard,
+    HKey(..),
+    HKeyState(..),
     initKeyboard,
     handleKeyEvent,
-    isKeyDown) where
+    isKeyDown,
+    mapGLFWKeyToHasteroidsKey,
+    mapGLFWKeyStateToHasteroidsKeyState
+    ) where
 
 import Data.Set (Set)
 import qualified Data.Set as Set
+import qualified Graphics.UI.GLFW as GLFW
 
-import Graphics.UI.GLUT (Key(..), KeyState(..))
+data HKey = HKeySpace
+          | HKeyLeft
+          | HKeyRight
+          | HKeyUp
+          | HKeyDown
+          | HKeyEsc
+          | HKeyUnknown
+          deriving (Eq, Ord, Show)
 
--- Mantém um set das teclas que estão apertadas atualmente.
-newtype Keyboard = Keyboard (Set Key)
+data HKeyState = HKeyUpState
+               | HKeyDownState
+               deriving (Eq, Show)
 
+newtype Keyboard = Keyboard (Set HKey)
 
-{-
-   Down: tecla pressionada, adiciona ao set.
-   Up: Tecla solta, remover do set.
--}
-handleKeyEvent :: Key -> KeyState -> Keyboard -> Keyboard
-handleKeyEvent key key' (Keyboard s) = case key' of
-        Up -> Keyboard $ Set.delete key s
-        Down -> Keyboard $ Set.insert key s
+handleKeyEvent :: HKey -> HKeyState -> Keyboard -> Keyboard
+handleKeyEvent key keyState (Keyboard s) = case keyState of
+        HKeyUpState   -> Keyboard $ Set.delete key s
+        HKeyDownState -> Keyboard $ Set.insert key s
 
--- Cria uma instância de teclado.
 initKeyboard :: Keyboard
 initKeyboard = Keyboard Set.empty
 
-
--- Checa se uma tecla esta sendo pressionada.
-isKeyDown :: Keyboard -> Key -> Bool
+isKeyDown :: Keyboard -> HKey -> Bool
 isKeyDown (Keyboard s) key = Set.member key s
+
+mapGLFWKeyToHasteroidsKey :: GLFW.Key -> HKey
+mapGLFWKeyToHasteroidsKey k = case k of
+    GLFW.Key'Space      -> HKeySpace
+    GLFW.Key'Left       -> HKeyLeft
+    GLFW.Key'Right      -> HKeyRight
+    GLFW.Key'Up         -> HKeyUp
+    GLFW.Key'Down       -> HKeyDown
+    GLFW.Key'Escape     -> HKeyEsc
+    _                   -> HKeyUnknown
+
+mapGLFWKeyStateToHasteroidsKeyState :: GLFW.KeyState -> HKeyState
+mapGLFWKeyStateToHasteroidsKeyState ks = case ks of
+    GLFW.KeyState'Pressed   -> HKeyDownState
+    GLFW.KeyState'Released  -> HKeyUpState
+    GLFW.KeyState'Repeating -> HKeyDownState

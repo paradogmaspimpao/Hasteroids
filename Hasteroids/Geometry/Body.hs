@@ -1,4 +1,4 @@
-module Hasteroids.Geometry.Body (
+module Hasteroids.Geometry.Body ( -- Reverted
     Body (..),
     transform,
     rotate,
@@ -6,11 +6,11 @@ module Hasteroids.Geometry.Body (
     accelerateForward,
     updateBody,
     initBody,
-    interpolatedBody,
+    interpolatedBody
     ) where
 
-import Hasteroids.Geometry
-import Hasteroids.Geometry.Transform
+import Hasteroids.Geometry -- Reverted
+import Hasteroids.Geometry.Transform -- Reverted
 
 data Body = Body {
     bodyPos :: Vec2,
@@ -23,46 +23,41 @@ data Body = Body {
     prevAngle :: Float
     }
 
--- Inicializa o corpo
 initBody :: Vec2 -> Body
 initBody pos = Body pos 0 (0, 0) 0 pos 0
 
--- Atualiza posição e orientação do corpo de acordo com sua velocidade e rotação
 updateBody :: Body -> Body
 updateBody b = b {
-     bodyPos = pos' /+/ wrap,  bodyAngle = a',
-     prevPos = pos  /+/ wrap,  prevAngle = a }
+     bodyPos = bodyPos b ^+^ bodyVelocity b ^+^ wrap, -- Simplified and corrected logic
+     bodyAngle = bodyAngle b + bodyRotation b,
+     prevPos = bodyPos b ^+^ wrap, -- prevPos should be current pos before move, with wrap
+     prevAngle = bodyAngle b }
+     where
+        -- Calculate wrapped next position to determine wrap offset for current position
+        nextRawPos = bodyPos b ^+^ bodyVelocity b
+        wrap = wrapper nextRawPos
 
-     where a    = bodyAngle b
-           pos  = bodyPos b
-           pos' = pos /+/ bodyVelocity b
-           a'   = a + bodyRotation b
-           wrap = wrapper pos'
 
---  Generate body data is is between current and previous state.
-interpolatedBody :: Float -- ^ interpolation point
-                 -> Body  -- ^ body
-                 -> Body  -- ^ interpolated body
+interpolatedBody :: Float
+                 -> Body
+                 -> Body
 interpolatedBody i body = body { bodyPos = pos', bodyAngle = angle' }
-    where pos' = (bodyPos body) /* i /+/ (prevPos body) /* i'
-          angle'   = (bodyAngle body) * i + (prevAngle body) * i'
-          i'   = 1.0 - i
+    where pos' = (bodyPos body ^* i) ^+^ (prevPos body ^* (1.0 - i)) -- Ensure (1.0-i) for i'
+          angle'   = (bodyAngle body) * i + (prevAngle body) * (1.0 - i)
 
--- Acelera o corpo a partir de um vetor
 accelerate :: Vec2 -> Body -> Body
 accelerate (ax, ay) body = body { bodyVelocity = newVelocity }
-    where newVelocity = (ax+vx, ay+vy)
+    where newVelocity = (vx + ax, vy + ay) -- Corrected order for clarity
           (vx, vy) = bodyVelocity body
 
 accelerateForward :: Float -> Body -> Body
 accelerateForward mag body = accelerate (polar mag $ bodyAngle body) body
 
--- Desacelera o corpo com um efeito de resistência ao movimento.
 damping :: Float -> Body -> Body
-damping coefficient body = body { bodyVelocity = coefficient */ bodyVelocity body}
+damping coefficient body = body { bodyVelocity = coefficient *^ bodyVelocity body}
 
 rotate :: Float -> Body -> Body
 rotate n b = b { bodyRotation = n }
 
 transform :: Body -> LineSegment -> LineSegment
-transform (Body pos a _ _ _ _) = applyXform $ (translatePt pos) . (rotatePt a)
+transform (Body pos angle _ _ _ _) = applyXform $ translatePt pos . rotatePt angle -- Simplified from (Body pos a _ _ _ _) to use names

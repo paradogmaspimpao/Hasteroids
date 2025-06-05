@@ -1,22 +1,18 @@
-module Hasteroids.Geometry where
+module Hasteroids.Geometry where -- Reverted
 
--- Alias para valor fundamental do vetor
 type VecVal = Float
---Alias para vetor 2D
 type Vec2 = (VecVal, VecVal)
---Definição própria de segmento de linha, baseado no valor absoluto de 2 vetores.
 newtype LineSegment = LineSegment (Vec2, Vec2)
 
--- Converte de polar para cartesiano com referencial 0 = cima, pi/2 = direita
-polar :: VecVal -> VecVal -> Vec2 -- Coord Radial -> Coord Angular -> Ponto Cartesiano
+polar :: VecVal -> VecVal -> Vec2
 polar m a = (m * sin a, m * (-cos a))
 
--- Transforma uma lista de pontos em uma lista de segmentos conectados.
 pointsToSegments :: [Vec2] -> [LineSegment]
+pointsToSegments [] = []
+pointsToSegments [_] = []
 pointsToSegments (p:p':[]) = [LineSegment (p, p')]
-pointsToSegments (p:t@(p':ps)) = (LineSegment (p, p')) : pointsToSegments t
+pointsToSegments (p:t@(p':_)) = LineSegment (p, p') : pointsToSegments t -- Corrected pattern match
 
---  Recebe um vetor delta que precisa ser tratado para realizar o "wrap" pelas bordas da tela.
 wrapper :: Vec2 -> Vec2
 wrapper (x,y) = (x',y')
     where x' | x < 0 = 800
@@ -26,21 +22,21 @@ wrapper (x,y) = (x',y')
              | y >= 600 = -600
              | otherwise = 0
 
-
 ptDistanceSqr :: Vec2 -> Vec2 -> VecVal
 ptDistanceSqr (x,y) (x',y') = dx*dx + dy*dy
     where dx = x-x'
           dy = y-y'
 
--- Adição entre dois vetores
-(x, y) /+/ (x1, y1) = (x+x1, y+y1)
+(^+^) :: Vec2 -> Vec2 -> Vec2
+(x, y) ^+^ (x1, y1) = (x+x1, y+y1)
 
-infixl 6 /+/
+infixl 6 ^+^
 
--- multiplicação de um vetor por um escalar
--- / Indica o lado do vetor
-n */ (x, y) = (n*x, n*y)
-(x, y) /* n = (n*x, n*y)
+(*^) :: VecVal -> Vec2 -> Vec2
+n *^ (x, y) = (n*x, n*y)
 
-infixl 7 /*
-infixl 7 */
+(^*) :: Vec2 -> VecVal -> Vec2
+(x, y) ^* n = (n*x, n*y)
+
+infixl 7 *^
+infixl 7 ^*

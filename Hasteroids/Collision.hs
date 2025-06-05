@@ -1,29 +1,29 @@
 module Hasteroids.Collision (Collider(..)) where
 
-import Control.Applicative
+-- import Control.Applicative -- Removed unused import
 
 import Hasteroids.Geometry
 
 class Collider c where
-    -- Segmentos de linha usados para a deteccao de colisao
     collisionLines :: c -> [LineSegment]
-    
-    --  Centro e raio de um circulo limitado
     collisionCenter :: c -> Vec2
     collisionRadius :: c -> Float
     
-    --  Testa se dois colidores se intercedem
     collides :: (Collider d) => c -> d -> Bool
     collides c c' = canCollide && doesCollide
         where canCollide  = distSqr < radius*radius
-              doesCollide = or $ lineCollision <$> cl <*> cl'
+              -- The (<$>) operator was from Control.Applicative,
+              -- but `fmap` (which is Prelude) or list comprehension can be used.
+              -- `or $ map (uncurry lineCollision) $ liftA2 (,) cl cl'` would also work with Applicative.
+              -- For simplicity, using list comprehension or direct map.
+              -- doesCollide = or $ [lineCollision s1 s2 | s1 <- cl, s2 <- cl'] -- Alternative
+              doesCollide = any id $ map (\s1 -> any (lineCollision s1) cl') cl -- More direct without list comp.
               
               distSqr = ptDistanceSqr (collisionCenter c) (collisionCenter c')
-              radius  = (collisionRadius c) + (collisionRadius c')
+              radius  = collisionRadius c + collisionRadius c'
               cl  = collisionLines c
               cl' = collisionLines c'
 
---  Testa se dois segmentos de linha se intersedem
 lineCollision :: LineSegment -> LineSegment -> Bool
 lineCollision (LineSegment ((x1,y1),(x2,y2))) (LineSegment ((x3,y3),(x4,y4))) =
     if d == 0
