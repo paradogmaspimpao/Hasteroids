@@ -1,20 +1,38 @@
 # Hasteroids
-A Classic Asteroids game, written in haskell with openGL libraries.
+A Classic Asteroids game, written in Haskell with OpenGL libraries, using GLFW for window management.
 
 ### Dependencies:
 
- - OpenGL, GLUT
- - stack is optional, but recommended (latest)
- - ghc v8.0.2
- - if using stack, be sure to ```stack install OpenGL GLUT```as stack keeps dependencies isolated from system-level packages.
+To build and run Hasteroids, you will need the following:
 
-### Running the game:
+-   **GHC (Glasgow Haskell Compiler):** The primary Haskell compiler. Most recent versions should work (e.g., GHC 8.6+).
+-   **Cabal:** The Haskell build tool. Usually installed as `cabal-install`.
+-   **GLFW (C Library):** Used for creating windows, contexts, and handling input.
+    -   **macOS (Homebrew):** `brew install glfw`
+    -   **Debian/Ubuntu:** `sudo apt-get install libglfw3-dev`
+    -   **Fedora:** `sudo dnf install glfw-devel`
+    -   Other systems: Install via your system's package manager. Ensure you install the development package if available (often ending in `-dev` or `-devel`).
+-   **OpenGL Drivers:** Necessary for graphics rendering. These are typically provided by your graphics card vendor and operating system.
 
-  - `$ cd ~/{your-clone-root}/Hasteroids`
-  
-  - `$ stack ghc -- --make main.hs`
+### Building and Running:
 
-  - `$ ./main`
+1.  **Navigate to the project directory:**
+    If you've just cloned the repository, `cd Hasteroids`.
+
+2.  **Build the project:**
+    Use Cabal to build the game:
+    ```bash
+    cabal build
+    ```
+    This command will download and build any Haskell dependencies listed in the `Hasteroids.cabal` file.
+
+3.  **Run the game:**
+    After a successful build, run the executable:
+    ```bash
+    cabal run hasteroids
+    ```
+
+    Alternatively, you can find the executable in a path similar to `dist-newstyle/build/<arch-os>/ghc-<version>/hasteroids-<version>/x/hasteroids/build/hasteroids/hasteroids` and run it directly.
 
 ### Contributing
 

@@ -1,18 +1,16 @@
-module Hasteroids.Player (
+module Hasteroids.Player ( -- Reverted
     Player(..),
     initPlayer,
     collidePlayer) where
 
-import Hasteroids.Controls
-import Hasteroids.Geometry
-import Hasteroids.Geometry.Transform
-import Hasteroids.Geometry.Body
-import Hasteroids.Render (LineRenderable(..))
-import Hasteroids.Tick
-import Hasteroids.Keyboard
-import Hasteroids.Collision
+import Hasteroids.Controls -- Reverted
+import Hasteroids.Geometry -- Reverted
+import Hasteroids.Geometry.Body -- Reverted
+import Hasteroids.Render (LineRenderable(..)) -- Reverted
+import Hasteroids.Tick -- Reverted
+import Hasteroids.Keyboard -- Reverted
+import Hasteroids.Collision -- Reverted
 
--- Datatype para guardar o estado atual do player
 data Player = Player {
     playerBody :: Body,
     playerAlive :: Bool
@@ -20,48 +18,42 @@ data Player = Player {
 
 instance LineRenderable Player where
     interpolatedLines _ (Player _ False) = []
-    interpolatedLines f (Player b _) = map (transform b') $ shipLines
+    interpolatedLines f (Player b _) = map (transform b') $ shipLines -- transform is from Geometry.Body
         where b' = interpolatedBody f b
 
--- Player precisa ser conforme ao "protocolo Tickable" --
 instance Tickable Player where
      tick _  p@(Player _ False) = p
      tick keyboard p@(Player body _) = p { playerBody  = updatePlayerBody turn acc body }
-        where turn | key turnLeft  = -0.2
-                   | key turnRight = 0.2
+        where turn | key keyTurnLeft  = torqueAmount
+                   | key keyTurnRight = -torqueAmount
                    | otherwise     = 0
-              acc | key thrust = 1.5
+              acc | key keyThrust = thrustAmount
                    | otherwise  = 0
+              key = isKeyDown keyboard -- isKeyDown from Hasteroids.Keyboard
 
-              key = isKeyDown keyboard
-
--- Torna Player em uma instancia de collider
 instance Collider Player where
-    collisionCenter = bodyPos . playerBody
+    collisionCenter = bodyPos . playerBody -- bodyPos from Geometry.Body
     collisionRadius = const shipSize
     collisionLines  = interpolatedLines 0
 
---  Testa colisao entre o player e uma lista de Colliders
---   Se a nave interceder com algum, ela e destruida
 collidePlayer :: Collider a => Player -> [a] -> Player
 collidePlayer p@(Player _ False) _ = p
 collidePlayer p [] = p
-collidePlayer p a = p { playerAlive = not $ any (collides p) a }
+collidePlayer p a = p { playerAlive = not $ any (collides p) a } -- collides from Hasteroids.Collision
 
---  Estado inicial do player no centro da tela
 initPlayer :: Player
-initPlayer = Player (initBody (400,300)) True
+initPlayer = Player (initBody (400,300)) True -- initBody from Geometry.Body
 
 updatePlayerBody :: Float -> Float -> Body -> Body
 updatePlayerBody turn acceleration = updateBody . damping 0.96 . accelerateForward acceleration . rotate turn
+    -- updateBody, damping, accelerateForward, rotate are all from Geometry.Body
 
---Constante : Tamanho da nave
-shipSize = 12.0 :: Float
+shipSize :: Float
+shipSize = 12.0 -- Added type signature
 
---Constroi a forma da nave uma unica vez. Subsequentes interações são de translado.
 shipLines :: [LineSegment]
-shipLines = pointsToSegments points
-    where points = [polar shipSize      0,
+shipLines = pointsToSegments points -- pointsToSegments from Hasteroids.Geometry
+    where points = [polar shipSize      0, -- polar from Hasteroids.Geometry
                     polar shipSize      (0.7*pi),
                     polar (shipSize*0.2) pi,
                     polar shipSize      (1.3*pi),

@@ -1,52 +1,69 @@
 module Hasteroids.Callbacks (
       initCallbackRefs,
-      renderViewport,
-      handleKeyboard)where
+      runGameLogicAndRender,
+      updateKeyboardState,
+      CallbackRefs(..)
+      ) where
 
 import Data.IORef
 import Data.Time.Clock.POSIX
 
-import Graphics.Rendering.OpenGL
-import Graphics.UI.GLUT
+import qualified Graphics.Rendering.OpenGL as GL
+import qualified Graphics.UI.GLFW as GLFW
 
-import Hasteroids.Render (LineRenderable(..))
+import Hasteroids.Render (LineRenderable(..), renderLinesModern)
 import Hasteroids.Tick
-import Hasteroids.Keyboard
+-- Removed HKeyState(..) from import as it was unused
+import Hasteroids.Keyboard (Keyboard, HKey(..), handleKeyEvent, mapGLFWKeyToHasteroidsKey, mapGLFWKeyStateToHasteroidsKeyState, initKeyboard)
 import Hasteroids.State (GameState, initialGameState)
+import Hasteroids.Initialize (RenderContext(..))
+-- Removed import Hasteroids.Geometry (LineSegment) as LineSegment is likely in scope via Hasteroids.Render or not needed directly
 
-type KeyboardRef = IORef Keyboard
-type TimeRef     = IORef POSIXTime
-type StateRef    = IORef GameState
+type KeyboardRef      = IORef Keyboard
+type TimeRef          = IORef POSIXTime
+type StateRef         = IORef GameState
+type RenderContextRef = IORef RenderContext
 
+data CallbackRefs = CallbackRefs
+    { cbAccumulatorRef :: TimeRef
+    , cbLastTimeRef    :: TimeRef
+    , cbKeyboardRef    :: KeyboardRef
+    , cbGameStateRef   :: StateRef
+    , cbRenderCtxRef   :: RenderContextRef
+    }
 
-data CallbackRefs = CallbackRefs TimeRef TimeRef KeyboardRef StateRef
-
-
---  Inicializa um novo grupo de referencias de callback
-initCallbackRefs :: IO CallbackRefs
-initCallbackRefs = do
-    accum <- newIORef $ 0
+initCallbackRefs :: RenderContext -> IO (IORef CallbackRefs)
+initCallbackRefs renderCtx = do
+    accum <- newIORef 0
     prev  <- getPOSIXTime >>= newIORef
     keyb  <- newIORef initKeyboard
     st    <- newIORef initialGameState
-    return $ CallbackRefs accum prev keyb st
+    rc    <- newIORef renderCtx
+    newIORef $ CallbackRefs accum prev keyb st rc
 
---  Roda a logica do jogo,renderiza a view e troca os buffers de display
-renderViewport :: CallbackRefs -> IO ()
-renderViewport refs@(CallbackRefs ar tr kb rr) = do
+runGameLogicAndRender :: IORef CallbackRefs -> IO ()
+runGameLogicAndRender refsIORef = do
+    refs <- readIORef refsIORef
+    let ar = cbAccumulatorRef refs
+        tr = cbLastTimeRef refs
+        kb = cbKeyboardRef refs
+        rr = cbGameStateRef refs
+        rcRef = cbRenderCtxRef refs
+
+    renderCtx <- readIORef rcRef
     current <- getPOSIXTime
     prev <- readIORef tr
     accum <- readIORef ar
-    keys <- readIORef kb
     
     let frameTime = min 0.1 $ current - prev
         newAccum  = accum + frameTime
 
-    let consumeAccum acc = if acc >= 0.033
-            then do
-               modifyIORef rr $ tick keys
-               consumeAccum $ acc - 0.033
-            else return acc
+    currentKeys_ <- readIORef kb
+    let consumeAccum nAcc =
+            if nAcc >= 0.033 then do
+                modifyIORef rr $ tick currentKeys_
+                consumeAccum (nAcc - 0.033)
+            else return nAcc
     
     newAccum' <- consumeAccum newAccum
     
@@ -54,16 +71,23 @@ renderViewport refs@(CallbackRefs ar tr kb rr) = do
     writeIORef ar newAccum'
 
     let interpolation = realToFrac $ newAccum' / 0.0333
-    
-    r <- readIORef rr
-    
-    clear [ColorBuffer]
-    renderInterpolated interpolation r
-    swapBuffers
-    postRedisplay Nothing
+    currentGameState <- readIORef rr
+    let segments = interpolatedLines interpolation currentGameState
 
--- Atualiza o estado do teclado de acordo com um evento
--- KeyboardMouseCallback é um alias para:
--- Key -> KeyState -> Modifiers -> Position -> IO())
-handleKeyboard :: CallbackRefs -> KeyboardMouseCallback
-handleKeyboard (CallbackRefs _ _ keyboard _) key key' _ _ = modifyIORef keyboard (handleKeyEvent key key')
+    GL.clear [GL.ColorBuffer]
+    
+    currentProjMatrix <- readIORef (rcProjectionMatrixRef renderCtx)
+    renderLinesModern (rcShaderProgram renderCtx)
+                      (rcVAO renderCtx)
+                      (rcVBO renderCtx)
+                      currentProjMatrix
+                      segments
+
+updateKeyboardState :: IORef Keyboard -> GLFW.Key -> GLFW.KeyState -> GLFW.ModifierKeys -> IO ()
+updateKeyboardState keyboardRef glfwKey glfwKeyState _mods = do -- Changed mods to _mods
+    let hasteroidsKey = mapGLFWKeyToHasteroidsKey glfwKey
+    case hasteroidsKey of
+        HKeyUnknown -> return ()
+        _ -> do
+            let hasteroidsKeyState = mapGLFWKeyStateToHasteroidsKeyState glfwKeyState
+            modifyIORef keyboardRef (handleKeyEvent hasteroidsKey hasteroidsKeyState)
